@@ -39,9 +39,13 @@ class App(object):
         #N = 4 #  example: value 4 means it's 6-letter word we are looking for (we know the 1st 2 letters)
         #N = 3
         args_n = int(args.N) 
-        N = args_n - 2 if args_n > 2 else 0
+        #N = args_n - 2 if args_n > 2 else 0
         #known_two = "OU"
         known_two = args.known
+        known_length = len(known_two)
+        N = args_n - known_length if args_n > known_length else 0
+        print("known: " + known_two)
+        print("N: " + str(N))
         #middle = "U"
         #letters = list({"U", "N", "T", "G", "D", "R", "O"})
         middle = word_config["middle"]
@@ -63,7 +67,7 @@ class App(object):
 
         for combo in itertools.product(letters,  repeat=N):
             count += 1
-            if count % 5000 == 0:
+            if count % 500 == 0:
                 App.totals_update(count, total_combos, middle_filter_count, consecutive_consonants, consecutive_identical_consonants,  
                                   consecutive_identical_vowels, consecutive_dupes, customized)
 
@@ -72,33 +76,40 @@ class App(object):
 
             if not word.__contains__(middle):
                 middle_filter_count += 1
+                print(word + " skip")
                 continue
 
             if App.find_consecutive_consonants(word):
                 consecutive_consonants += 1
+                print(word + " skip")
                 continue
 
             if App.has_consecutive_identical_consonants(word):
                 consecutive_identical_consonants += 1
+                print(word + " skip")
                 continue
 
             if App.has_consecutive_identical_vowels(word):
                 consecutive_identical_vowels += 1
+                print(word + " skip")
                 continue
 
 
             if App.consecutive_duplicates(word):
                 consecutive_dupes += 1
+                print(word + " skip")
                 continue
 
             if App.customized_daily_checks(word, customized):
                 customized += 1
+                print(word + " skip")
                 continue
 
             #print("API call: " + word)
 
             url = endpoint + word.lower()
             #url = endpoint + "football"
+            print(url)
             headers = {"Accept": "application/json", "User-Agent": "Mozilla/5.0"}
 
             req = urllib.request.Request(url, headers=headers,  method="GET")
