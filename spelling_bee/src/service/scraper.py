@@ -7,6 +7,7 @@ class Scraper(object):
     def __init__(self, config):
         self.logger = AppLogger.get_logger()
         self.spelling_bee_url = config.get("spelling.bee.url")
+        os.makedirs(os.path.join(config.get("output.data.dir")), exist_ok=True)
         self.scrape_file_path = os.path.join(config.get("output.data.dir"), config.get("scrape.file"))
         self.letter_file_path = os.path.join(config.get("output.data.dir"), config.get("letter.file"))
         self.pair_file_path = os.path.join(config.get("output.data.dir"), config.get("pair.file"))
