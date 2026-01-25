@@ -1,5 +1,6 @@
 import os
 import csv
+import stat
 import json
 from src.logging.app_logger import AppLogger
 
@@ -7,11 +8,8 @@ class FileService(object):
 
     @staticmethod
     def append(filename:str, obj):
-        #logger = AppLogger.get_logger()
-        #logger.info(str(filename) + " ")
-        #logger.info(str(obj))
         with open(filename, "a") as f:
-            f.write(json.dumps(obj) + "\n")
+            f.write(obj + "\n")
 
     @staticmethod
     def file_exists(filename:str) -> bool:
@@ -27,3 +25,20 @@ class FileService(object):
     def write_file(filename:str, obj):
         with open(filename, "w", encoding="utf-8") as f:
             f.write(str(obj))
+
+    @staticmethod
+    def delete_file(filename):
+        if os.path.exists(filename):
+            try:
+                # Clear read-only flag (Windows)
+                os.chmod(filename, stat.S_IWRITE)
+                os.remove(filename)
+                #print(f"Deleted {filename}")
+            except PermissionError:
+                print(f"Permission denied: {filename}")
+            except Exception as e:
+                print(f"Error deleting {filename}: {e}")
+            # else:
+            #     print(f"Still exists: {filename}")
+        #else:
+        #    print(filename + " does not exist")
