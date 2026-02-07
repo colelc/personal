@@ -2,13 +2,14 @@
 import json
 import os
 import itertools
-
+import sys
 import argparse
 import time
 import urllib.request
 from collections import Counter
 from src.service.scraper import Scraper
 from src.service.filter_service import FilterService
+from src.service.ai_filter_service import AiFilterService
 from src.service.file_service import FileService
 from src.config.config import Config
 from src.logging.app_logger import AppLogger
@@ -50,12 +51,16 @@ class App(object):
 
         middle = word_config["middle"]
         letters = word_config["letters"]
+        logger.info("middle: " + middle)
+        logger.info("letters: " + str(letters))
 
         total_combos = 0
         for combo in itertools.product(letters,  repeat=N):
             total_combos += 1
 
         logger.info("TOTAL combos: " + str(total_combos))
+
+        input_data_dir = config.get("input.data.dir")
 
         output_data_dir = config.get("output.data.dir")
         os.makedirs(output_data_dir, exist_ok=True)
@@ -68,7 +73,16 @@ class App(object):
         filter_file_path = os.path.join(output_data_dir, filter_file)
         FileService.delete_file(filter_file_path)
 
-        filterService = FilterService(N, middle, letters)
+        prefix_file = config.get("prefix.file")
+        prefix_file_path = os.path.join(input_data_dir, prefix_file)
+        bad_prefixes = FileService.read_file(prefix_file_path)
+
+        suffix_file = config.get("suffix.file")
+        suffix_file_path = os.path.join(input_data_dir, suffix_file)
+        bad_suffixes = FileService.read_file(suffix_file_path)
+
+        #filterService = FilterService(N, middle, letters)
+        aiFilterService = AiFilterService(N, middle, letters, bad_prefixes, bad_suffixes)
 
         #  BEGIN MAIN PROCESSING LOOP
         counter = 0
@@ -77,18 +91,27 @@ class App(object):
 
         for combo in itertools.product(letters,  repeat=N):
             counter += 1
-            if counter % 100 == 0:
+            if counter % 1000000 == 0:
                 App.totals_update(counter, total_combos, filtered, http_lookup)
 
             part = "".join(combo)
-            word = known_two +  part
-            #logger.info(" -> " + word)
+            word = (known_two +  part).upper()
+            if word == "PROPITIATORY":
+                logger.info(" -> " + word)
+            
+            #######
+            #word = "PROPITIATORY"
+            #######
 
-            doFilter = filterService.filter(word)
+            #doFilter = filterService.filter(word)
+            doFilter = aiFilterService.filter(word)
             if doFilter is True:
-                FileService.append(filter_file_path, word)
+                #FileService.append(filter_file_path, word)
                 filtered += 1
+                ######
+                #sys.exit()
                 continue
+                ########
 
             url = endpoint + word.lower()
             #url = endpoint + "football"

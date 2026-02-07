@@ -7,6 +7,14 @@ from src.logging.app_logger import AppLogger
 class FileService(object):
 
     @staticmethod
+    def read_file(filename:str):
+        entries = []
+        with open(filename, "r", encoding="utf-8") as f:
+            entries = [line.strip() for line in f]
+
+        return entries
+
+    @staticmethod
     def append(filename:str, obj):
         with open(filename, "a") as f:
             f.write(obj + "\n")
